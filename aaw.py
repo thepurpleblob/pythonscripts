@@ -2,9 +2,20 @@ import sys
 import pymysql
 import pprint
 import aawlib
+import aawxml
 
 # instantiate PrettyPrint for debugging
 pp = pprint.PrettyPrinter(indent=4);
+
+# check command line arguments
+if len(sys.argv) != 2:
+    print('Usage: python3 aaw.py <xmlfile>')
+    sys.exit(1)
+
+# output file
+filename = sys.argv[1]
+f = open(filename, 'w')
+aawxml.header(f)
 
 # holder for current data hierarchy
 class ttclass:
@@ -40,7 +51,7 @@ for course in courses:
         # iterate over tasks
         for task in tasks:
             tt.taskid = task[0]
-            tt.tasktype = task[2]
+            tt.tasktype = str(task[2])
             tt.tasktypeid = task[3]
             tt.difficulty = task[4]
             print( "        Task " + tt.tasktype + " difficulty " + str(tt.difficulty))
@@ -57,4 +68,5 @@ for course in courses:
             else:
                 print( "            Tasktype not recognised!")
 
-    
+aawxml.footer(f)
+f.close() 
