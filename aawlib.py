@@ -1,7 +1,18 @@
 import sys
 import pprint
+import aawxml
+from lxml.html.clean import Cleaner
 
 pp = pprint.PrettyPrinter(indent=4);
+
+def clean_word(text):
+    "Remove MS Word style crap"
+    cleaner = Cleaner(style=True)
+    try:
+        cleantext = cleaner.clean_html(text)
+    except:
+        cleantext = text
+    return text
 
 #
 # Get the list of courses
@@ -41,7 +52,7 @@ def gettasks(conn, writingid):
 #
 # Handle multiplechoice
 #
-def multiplechoice(conn, tt):
+def multiplechoice(f, conn, tt):
 
     # Get the question intro
     cur = conn.cursor()
@@ -49,7 +60,7 @@ def multiplechoice(conn, tt):
     cur.execute(sql)
     mcq = cur.fetchone()
     cur.close()
-    intro = mcq[1];
+    intro = clean_word(mcq[1])
     print( 'INTRO ' + intro )
 
     # get the question(s) for the above
@@ -63,37 +74,65 @@ def multiplechoice(conn, tt):
     # iterate over questions and get answers
     for question in questions:
         qid = question[0]
-        qtext = question[2]
+        qtext = clean_word(question[2])
         question_number = question[3]
         print( '    QUESTION ' + str(question_number) + ' ' + qtext )
         cur = conn.cursor()
         sql = 'SELECT * FROM mdl_writing_mcq_answer WHERE question_id=' + str(qid)
         cur.execute(sql)
         answers = cur.fetchall()
+
+        # must be 2 or more answers or question is bogus
+        if len(answers) < 2:
+            print( '        **ERROR** Not enough answers. Rejecting' )
+            return
         cur.close
+        aawxml.mcqmain(f, qid, intro, qtext)
 
         # interate over answers
         for answer in answers:
-            atext = answer[2]
-            feedback = answer[3]
+            atext = clean_word(answer[2])
+            feedback = clean_word(answer[3])
             print( '        ANSWER: ' + atext)
             print( '        FEEDBACK: ' + feedback)
-        
+            aawxml.mcqanswer(f, atext, feedback)
+       
+        # close question
+        aawxml.questionclose(f)
+ 
     return
 
 #
 # Handle wordclick
 #
-def wordclick(conn, tt):
+def wordclick(f, conn, tt):
     return
 
 #
 # Handle freetext
 #
-def freetext(conn, tt):
+def freetext(f, conn, tt):
+
+    # Get the question intro
+    cur = conn.cursor()
+    sql = 'SELECT * FROM mdl_writing_freetext WHERE id=' + str(tt.tasktypeid)
+    cur.execute(sql)
+    freetext = cur.fetchone()
+    cur.close()
+    essayid = freetext[0]
+    if freetext[1]:
+        intro = clean_word(freetext[1])
+    else:
+        intro = ''
+    problemtext = clean_word(freetext[2])
+    sampleanswer = clean_word(freetext[3])
+    explanationtext = clean_word(freetext[4])
+    print( 'INTRO ' + intro )
+    aawxml.essaymain(f, essayid, intro, problemtext, sampleanswer, explanationtext)
+    aawxml.questionclose(f)
     return
 #
 # Handle selectcat
 #
-def selectcat(conn, tt):
+def selectcat(f, conn, tt):
     return

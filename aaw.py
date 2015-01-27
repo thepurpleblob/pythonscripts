@@ -31,9 +31,10 @@ courses = aawlib.getcourses(conn)
 tt = ttclass()
 for course in courses:
     tt.courseid = course[0]
-    tt.fullname = course[1]
-    tt.shortname = course[2]
+    tt.fullname = course[1].strip()
+    tt.shortname = course[2].strip()
     print("Processing course " + tt.fullname)
+    aawxml.category(f, '$cat1$/'+tt.fullname)
 
     # get writings in current course
     writings = aawlib.getwritings(conn, tt.courseid)
@@ -41,9 +42,10 @@ for course in courses:
     # iterate over writings
     for writing in writings:
         tt.writingid = writing[0]
-        tt.name = writing[2]
-        tt.intro = writing[3]
+        tt.name = writing[2].strip()
+        tt.intro = writing[3].strip()
         print("    Writing activity " + tt.name);
+        aawxml.category(f, '$cat1$/'+tt.shortname+'/'+tt.name)
 
         # get tasks in current writing
         tasks = aawlib.gettasks(conn, tt.writingid)
@@ -58,13 +60,13 @@ for course in courses:
 
             # handler for task type
             if tt.tasktype == 'multiplechoice':
-                aawlib.multiplechoice(conn, tt)
+                aawlib.multiplechoice(f, conn, tt)
             elif tt.tasktype == 'wordclick':
-                aawlib.wordclick(conn, tt)
+                aawlib.wordclick(f, conn, tt)
             elif tt.tasktype == 'freetext':
-                aawlib.freetext(conn, tt)
+                aawlib.freetext(f, conn, tt)
             elif tt.tasktype == 'selectcat':
-                aawlib.freetext(conn, tt)
+                aawlib.selectcat(f, conn, tt)
             else:
                 print( "            Tasktype not recognised!")
 
