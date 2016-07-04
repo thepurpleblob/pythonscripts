@@ -1,0 +1,21 @@
+1. change all authentication EXCEPT existing internal (manual) to internal LDAP
+
+update usr set authinstance=28 where authinstance<>1;
+
+2. Switch webservices on
+
+3. Add webservice user
+- username webuser
+- password webpass
+- site administrator
+- Authentication: 'No institution: webservice'
+
+4. In Institution Provisioning, switch on all institution functions
+
+5. In 'manage service access tokens' add web user for Institution Provisioning
+
+6. Copy token generated into script
+
+7. Run script.... python3 faculty.py
+
+8. Go through each Institution, add Internal auth and delete other two. Then delete Institution (this is a bug)
